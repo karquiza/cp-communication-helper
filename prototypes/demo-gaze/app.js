@@ -139,10 +139,42 @@
     requestAnimationFrame(loop);
   }
 
+  /* ---------- Choosing the camera ---------- */
+  var camIds = [], camIdx = 0, SIZE = { width: { ideal: 640 }, height: { ideal: 480 } };
+  function openCam(video) { return navigator.mediaDevices.getUserMedia({ video: Object.assign({}, SIZE, video), audio: false }); }
+  function stopCam(stream) { if (stream) stream.getTracks().forEach(function (t) { t.stop(); }); }
+
+  // Ask for the front (selfie) camera. Some tablets hand back the rear one anyway, so check and correct.
+  async function frontStream() {
+    var stream;
+    try { stream = await openCam({ facingMode: { exact: 'user' } }); }
+    catch (e) { stream = await openCam({ facingMode: 'user' }); }
+    var track = stream.getVideoTracks()[0], set = track.getSettings ? track.getSettings() : {};
+    var cams = (await navigator.mediaDevices.enumerateDevices()).filter(function (d) { return d.kind === 'videoinput'; });
+    if (set.facingMode === 'environment' || /back|rear|environment/i.test(track.label)) {
+      var front = cams.filter(function (d) { return /front|user|facetime|selfie/i.test(d.label); })[0];
+      if (front) { stopCam(stream); stream = await openCam({ deviceId: { exact: front.deviceId } }); set = stream.getVideoTracks()[0].getSettings(); }
+    }
+    camIds = cams.map(function (d) { return d.deviceId; });
+    camIdx = Math.max(0, camIds.indexOf(set.deviceId));
+    $('#swap').hidden = camIds.length < 2;
+    return stream;
+  }
+
+  // Manual override: step to the next camera on the device.
+  async function switchCamera() {
+    if (camIds.length < 2) return;
+    camIdx = (camIdx + 1) % camIds.length;
+    stopCam(video.srcObject);
+    video.srcObject = await openCam({ deviceId: { exact: camIds[camIdx] } });
+    await video.play();
+    gaze.cents = null; gaze.f = null; // the old setup no longer matches this camera
+  }
+
   async function startCamera() {
     if (st.cam) return true;
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('This browser cannot use the camera here. The page must be opened over https.');
-    var stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+    var stream = await frontStream();
     video.srcObject = stream; await video.play();
     $('#camrow').hidden = false; $('#status').textContent = 'Loading the face tracker';
     var mod = await import(MP + '/vision_bundle.mjs');
@@ -164,13 +196,13 @@
     for (var k = 0; k < 5; k++) {
       var tries = 0;
       while (true) {
-        if (run !== st.run) return false;
+        if (run !== st.run) return null;
         tg.forEach(function (el, i) { el.classList.toggle('on', i === k - 1); });
         $('#mid').innerHTML = '<p class="prompt">Setup ' + (k + 1) + ' of 5</p><p class="context">Look at the yellow dot and keep looking.</p>' + (k === 0 ? '<div class="cdot"></div>' : '');
         $('#status').textContent = 'Look at ' + NAMES[k];
         await sleep(1300);
         cal.samples = []; cal.collecting = true; await sleep(1500); cal.collecting = false;
-        if (run !== st.run) return false;
+        if (run !== st.run) return null;
         if (cal.samples.length >= 8) {
           var mean = [0, 0, 0, 0];
           cal.samples.forEach(function (s) { for (var i = 0; i < 4; i++) mean[i] += s[i] / cal.samples.length; });
@@ -211,8 +243,8 @@
         await startCamera();
         if (forceCal || !gaze.cents) {
           var ok = await calibrate();
-          if (!ok && st.phase === 'calib') { showApp(false); renderIntro(); introMsg('Setup could not see a face clearly. Check the tips below and try again, or start without the camera.'); return; }
-          if (!ok) return;
+          if (ok === null) return; // setup was restarted or the menu was opened
+          if (!ok) { noFace(); return; }
         }
       } catch (e) {
         showApp(false); renderIntro();
@@ -223,6 +255,14 @@
     startScenario();
   }
 
+  function noFace() { showApp(false); renderIntro(); introMsg('Setup could not see a face clearly. Check the tips below and try again, or start without the camera.'); }
+  $('#swap').addEventListener('click', async function () {
+    try {
+      await switchCamera();
+      var ok = await calibrate();
+      if (ok) startScenario(); else if (ok === false) noFace();
+    } catch (e) { $('#status').textContent = 'Could not switch camera'; }
+  });
   $('#scn').addEventListener('click', function (e) { var b = e.target.closest('button[data-scn]'); if (b) { st.scn = +b.dataset.scn; renderIntro(); } });
   $('#dwell').addEventListener('input', function () { st.dwellMs = +this.value * 1000; $('#dwellOut').textContent = (+this.value).toFixed(1) + ' s'; });
   $('#startCam').addEventListener('click', function () { begin(true, false); });
