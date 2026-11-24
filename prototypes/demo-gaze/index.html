@@ -63,8 +63,8 @@
     <button class="tgt off" data-i="1"><i class="fill"></i><span class="t"></span><span class="pct"></span></button>
     <div class="center">
       <div class="camrow" id="camrow" hidden>
-        <video id="video" playsinline muted></video>
-        <p id="status" aria-live="polite">Starting camera</p>
+        <video id="video" playsinline muted autoplay title="Tap to enlarge"></video>
+        <div><p id="status" aria-live="polite">Starting camera</p><p id="caminfo" style="font-size:12px;color:var(--ink-soft);text-align:left"></p></div>
         <button class="ghost" id="swap" hidden style="padding:6px 12px;font-size:13px">Switch camera</button>
       </div>
       <div id="mid" aria-live="polite"></div>
@@ -76,6 +76,7 @@
 </div>
 
 <script src="../shared/scenarios.js"></script>
+<script src="../shared/builder.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

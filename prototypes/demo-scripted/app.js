@@ -27,8 +27,16 @@
   function turn() { return st.cur || SCENARIOS[st.scn].first; }
   function stop() { clearTimeout(st.timer); st.timer = null; }
 
-  function reset() { stop(); st.cur = null; st.ctx = ''; st.set = 0; st.lit = 0; st.phase = 'idle'; st.said = []; st.last = ''; render(); }
-  function start() { st.cur = SCENARIOS[st.scn].first; st.said = []; sense(); }
+  function reset() { stop(); st.building = false; st.cur = null; st.ctx = ''; st.set = 0; st.lit = 0; st.phase = 'idle'; st.said = []; st.last = ''; render(); }
+  function start() { st.building = false; st.cur = SCENARIOS[st.scn].first; st.said = []; sense(); }
+  // Sentence builder: Maya makes her own sentence instead of choosing from scripted guesses.
+  function startBuild() { stop(); st.building = true; st.builder = window.TB_Builder(); st.said = []; st.phase = 'build'; render(); }
+  function buildPick(i) {
+    var said = st.builder.pick(i);
+    if (!said) { render(); return; }
+    st.said.push(said); st.last = said; st.phase = 'spoken'; speak(said); render();
+    st.timer = setTimeout(function () { st.phase = 'build'; render(); }, reduce ? 900 : 2200);
+  }
   function sense() {
     stop(); st.set = 0; st.lit = 0; st.phase = 'sensing';
     st.ctx = turn().context || (st.said.length ? 'Maya just said: ' + st.said[st.said.length - 1] : '');
@@ -65,7 +73,7 @@
     }
     // chips
     var chips = '';
-    if (st.phase !== 'idle' && st.phase !== 'done') {
+    if (st.phase !== 'idle' && st.phase !== 'done' && !st.building) {
       t.signals.forEach(function (sig, i) {
         var cls = st.phase !== 'sensing' || i < st.lit ? 'lit' : (i === st.lit ? 'now' : '');
         chips += '<span class="chip ' + cls + '"><span class="kind">' + KIND[sig[0]] + '</span>' + esc(sig[1]) + '</span>';
@@ -73,11 +81,12 @@
     }
     $('#chips').innerHTML = chips;
     // context
-    $('#context').innerHTML = (st.ctx && st.phase !== 'idle' && st.phase !== 'done') ? '<p class="context">' + esc(st.ctx) + '</p>' : '';
+    $('#context').innerHTML = (st.ctx && st.phase !== 'idle' && st.phase !== 'done' && !st.building) ? '<p class="context">' + esc(st.ctx) + '</p>' : '';
     // guesses area
     var g = '';
     if (st.phase === 'idle') {
       g = '<button class="big" data-act="start">' + PLAY + 'Start: ' + esc(s.name) + '</button>' +
+          '<button class="ghost" data-act="build">Build my own sentence</button>' +
           '<p class="notice">Maya moves, looks or makes a sound. TalkBridge suggests what she means, and she chooses.</p>';
     } else if (st.phase === 'sensing') {
       g = '<p class="sensing">Reading Maya\'s signals…</p><div class="skel"></div><div class="skel"></div><div class="skel"></div>';
@@ -91,8 +100,17 @@
       g += '<button class="none" data-act="none">None of these</button>';
     } else if (st.phase === 'spoken') {
       g = '<div class="spoken"><span class="small">Speaking aloud</span><span class="t">' + esc(st.last) + '</span><span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span></div>';
+    } else if (st.phase === 'build') {
+      var sentence = st.builder.text();
+      g = '<p class="label">Maya\'s sentence</p>' +
+          '<p class="notice" style="font-family:var(--font-display);font-size:20px;color:var(--ink)">' + (sentence ? esc(sentence) : 'Choose a first word') + '</p>';
+      st.builder.options().forEach(function (o, i) {
+        if (o) g += '<button class="guess' + (o.act === 'say' ? ' top' : '') + '" data-act="bpick" data-i="' + i + '"><span class="rank">' + (i + 1) + '</span><span class="t">' + esc(o.label) + '</span><span class="pct"></span></button>';
+      });
+      g += '<button class="ghost" data-act="bmore">More words</button><button class="none" data-act="reset">Finish</button>';
     } else if (st.phase === 'nomore') {
       g = '<p class="notice">No more scripted guesses. In the real app, this opens Maya\'s full word board so she is never stuck with the app\'s ideas.</p>' +
+          '<button class="big" data-act="build">Build my own sentence</button>' +
           '<button class="ghost" data-act="retry">Try this turn again</button>';
     } else if (st.phase === 'done') {
       g = '<p class="notice">Scenario finished. Maya chose every message that was spoken.</p>' +
@@ -120,6 +138,7 @@
       }
     }
     else if (st.phase === 'spoken') note = 'Only a message Maya has confirmed is spoken aloud. The app never speaks a guess on its own.';
+    else if (st.phase === 'build') note = 'Maya builds any sentence one word or phrase at a time. The app suggests likely next words, so a few choices make a full sentence. "Say it" speaks it aloud. These suggestions come from a small hand-written list, not a real model.';
     else if (st.phase === 'nomore') note = 'When the guesses run out, the child needs a fallback that does not depend on prediction.';
     else if (st.phase === 'done') note = 'Each confirmed message also becomes context for the next guess, which is how short signals build into sentences.';
     $('#noteText').textContent = note;
@@ -129,6 +148,10 @@
   document.addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.act === 'start') start();
+    else if (b.dataset.act === 'build') startBuild();
+    else if (b.dataset.act === 'bpick') buildPick(+b.dataset.i);
+    else if (b.dataset.act === 'bmore') { st.builder.more(); render(); }
+    else if (b.dataset.act === 'reset') reset();
     else if (b.dataset.act === 'choose') choose(+b.dataset.i);
     else if (b.dataset.act === 'none') noneOfThese();
     else if (b.dataset.act === 'retry') sense();

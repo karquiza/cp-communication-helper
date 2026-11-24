@@ -25,8 +25,22 @@
   }
 
   /* ---------- Conversation flow ---------- */
-  function turn() { return st.cur || SCENARIOS[st.scn].first; }
-  function startScenario() { clearTimeout(st.timer); st.cur = SCENARIOS[st.scn].first; st.said = []; beginTurn(); }
+  function turn() { return st.cur || (SCENARIOS[st.scn] || SCENARIOS[0]).first; }
+  function startScenario() {
+    clearTimeout(st.timer); st.said = [];
+    if (st.scn < 0) { startBuild(); return; }   // "Build my own sentence" was chosen on the start screen
+    st.cur = SCENARIOS[st.scn].first; beginTurn();
+  }
+  // Sentence builder: choose words one at a time. Corners 1 to 3 are suggestions, corner 4 shows more words.
+  var builder = null;
+  function startBuild() { clearTimeout(st.timer); builder = window.TB_Builder(); st.phase = 'build'; armGaze(); render(); }
+  function buildSelect(i) {
+    if (i === 3) { builder.more(); armGaze(); render(); return; }
+    var said = builder.pick(i);
+    if (!said) { armGaze(); render(); return; }
+    st.said.push(said); st.last = said; st.phase = 'spoken'; speak(said); render();
+    st.timer = setTimeout(function () { st.phase = 'build'; armGaze(); render(); }, 2400);
+  }
   function beginTurn() {
     st.set = 0; st.phase = 'reading';
     st.ctx = turn().context || (st.said.length ? 'You just said: ' + st.said[st.said.length - 1] : '');
@@ -34,6 +48,7 @@
     st.timer = setTimeout(function () { st.phase = 'guessing'; armGaze(); render(); }, 1100);
   }
   function select(i) {
+    if (st.phase === 'build') { buildSelect(i); return; }
     if (st.phase !== 'guessing') return;
     if (i === 3) {
       if (st.set + 1 < turn().sets.length) { st.set++; armGaze(); render(); }
@@ -49,13 +64,19 @@
   }
 
   function render() {
-    var t = turn(), opts = st.phase === 'guessing' ? t.sets[st.set] : null;
+    var t = turn(), labels = null; // four corner labels: [text, small text], or null for an empty corner
+    if (st.phase === 'guessing') labels = t.sets[st.set].map(function (o) { return [o[0], o[1] + '% sure']; }).concat([['None of these', '']]);
+    else if (st.phase === 'build') {
+      var o3 = builder.options();
+      labels = [0, 1, 2].map(function (i) { return o3[i] ? [o3[i].label, o3[i].act ? '' : 'word'] : null; }).concat([['More words', '']]);
+    }
     tg.forEach(function (el, i) {
       el.classList.remove('cal', 'on', 'look'); el.style.setProperty('--p', 0);
-      if (!opts) { el.classList.add('off'); return; }
+      el.classList.toggle('none', i === 3 && st.phase === 'guessing');
+      if (!labels || !labels[i]) { el.classList.add('off'); return; }
       el.classList.remove('off');
-      el.querySelector('.t').textContent = i < 3 ? opts[i][0] : 'None of these';
-      el.querySelector('.pct').textContent = i < 3 ? opts[i][1] + '% sure' : '';
+      el.querySelector('.t').textContent = labels[i][0];
+      el.querySelector('.pct').textContent = labels[i][1];
     });
     var m = '';
     if (st.phase === 'reading') m = '<p class="prompt">Reading signals…</p>';
@@ -64,8 +85,13 @@
           '<p class="prompt">' + (st.set > 0 ? 'More ideas. ' : '') + 'Did you mean…</p>' +
           '<p class="context">' + (st.cam && gaze.cents ? 'Look at the middle, then look at your answer and hold.' : 'Tap your answer.') + '</p>';
     }
+    else if (st.phase === 'build') {
+      var sentence = builder.text();
+      m = '<p class="context">Your sentence</p><p class="prompt">' + (sentence ? esc(sentence) : 'Choose a first word') + '</p>' +
+          '<p class="context">' + (st.cam && gaze.cents ? 'Look at the middle, then look at a word and hold.' : 'Tap a word.') + '</p>';
+    }
     else if (st.phase === 'spoken') m = '<p class="spoken"><small>Speaking aloud</small>' + esc(st.last) + '</p>';
-    else if (st.phase === 'nomore') m = '<p class="context">No more scripted suggestions. The real app would open a full word board here.</p><div class="btnrow"><button class="ghost" data-act="again">Try again</button></div>';
+    else if (st.phase === 'nomore') m = '<p class="context">No more scripted suggestions. You can build your own sentence instead.</p><div class="btnrow"><button class="big" data-act="build">Build my own sentence</button><button class="ghost" data-act="again">Try again</button></div>';
     else if (st.phase === 'done') m = '<p class="prompt">Scenario finished</p><div class="btnrow"><button class="big" data-act="again">Play again</button><button class="ghost" data-act="menu">Change scenario</button></div>';
     $('#mid').innerHTML = m;
     $('#said').innerHTML = st.phase === 'calib' ? '' : st.said.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('');
@@ -113,7 +139,7 @@
   function onFrame(f, dt) {
     if (cal.collecting) { if (f) cal.samples.push(f); return; }
     if (st.phase === 'calib') return;
-    if (st.phase !== 'guessing' || !gaze.cents) { $('#status').textContent = f ? 'Face found' : 'No face found'; return; }
+    if ((st.phase !== 'guessing' && st.phase !== 'build') || !gaze.cents) { $('#status').textContent = f ? 'Face found' : 'No face found'; return; }
     var c = f ? classify(f) : -1;
     if (c === 0) { gaze.armed = true; gaze.cur = -1; gaze.acc = 0; }
     else if (c > 0 && gaze.armed) { if (c === gaze.cur) gaze.acc += dt; else { gaze.cur = c; gaze.acc = 0; } }
@@ -161,13 +187,20 @@
     return stream;
   }
 
+  // Show which camera is in use and its picture size, to help when the preview looks wrong.
+  function camInfo() {
+    var t = video.srcObject && video.srcObject.getVideoTracks()[0];
+    $('#caminfo').textContent = t ? (t.label || 'Camera') + ' \u00b7 ' + video.videoWidth + '\u00d7' + video.videoHeight + (t.muted ? ' \u00b7 paused by the device' : '') : '';
+  }
+  video.addEventListener('click', function () { var big = video.style.width !== '240px'; video.style.width = big ? '240px' : ''; video.style.height = big ? '180px' : ''; });
+
   // Manual override: step to the next camera on the device.
   async function switchCamera() {
     if (camIds.length < 2) return;
     camIdx = (camIdx + 1) % camIds.length;
     stopCam(video.srcObject);
     video.srcObject = await openCam({ deviceId: { exact: camIds[camIdx] } });
-    await video.play();
+    await video.play(); camInfo();
     gaze.cents = null; gaze.f = null; // the old setup no longer matches this camera
   }
 
@@ -175,8 +208,8 @@
     if (st.cam) return true;
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('This browser cannot use the camera here. The page must be opened over https.');
     var stream = await frontStream();
-    video.srcObject = stream; await video.play();
-    $('#camrow').hidden = false; $('#status').textContent = 'Loading the face tracker';
+    video.srcObject = stream; $('#camrow').hidden = false; await video.play(); camInfo();
+    $('#status').textContent = 'Loading the face tracker';
     var mod = await import(MP + '/vision_bundle.mjs');
     var v = mod.FaceLandmarker ? mod : mod.default;
     var files = await v.FilesetResolver.forVisionTasks(MP + '/wasm');
@@ -229,7 +262,7 @@
   function renderIntro() {
     $('#scn').innerHTML = SCENARIOS.map(function (x, i) {
       return '<button data-scn="' + i + '" aria-pressed="' + (i === st.scn) + '"><b>' + esc(x.name) + '</b><span>' + esc(x.blurb) + '</span></button>';
-    }).join('');
+    }).join('') + '<button data-scn="-1" aria-pressed="' + (st.scn < 0) + '"><b>Build my own sentence</b><span>Choose words one at a time to say anything.</span></button>';
     $('#recal').hidden = !(st.cam && gaze.cents);
     $('#startCam').textContent = st.cam && gaze.cents ? 'Start (camera is set up)' : 'Start with camera';
   }
@@ -272,7 +305,7 @@
   tg.forEach(function (el) { el.addEventListener('click', function () { select(+el.dataset.i); }); });
   $('#mid').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-act]'); if (!b) return;
-    if (b.dataset.act === 'again') startScenario(); else $('#menu').click();
+    if (b.dataset.act === 'again') startScenario(); else if (b.dataset.act === 'build') startBuild(); else $('#menu').click();
   });
 
   renderIntro();

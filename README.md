@@ -12,6 +12,7 @@ prototypes/             Throwaway web demos. Quick to change, safe to break.
   shared/
     tokens.css          Colours, fonts and shadows used by every page
     scenarios.js        The scripted conversations used by every demo
+    builder.js          Word lists and logic for "Build my own sentence"
   demo-scripted/        Clickable prototype with presenter notes (no camera)
   demo-gaze/            Choose an answer by looking at it (real camera)
 app/                    Not created yet. The real mobile app goes here.
@@ -58,6 +59,7 @@ The repository must be public for Pages on a free GitHub account.
 | To change | Edit |
 | --- | --- |
 | The conversations and suggestions | `prototypes/shared/scenarios.js` (the format is explained at the top of the file) |
+| The words offered in "Build my own sentence" | `prototypes/shared/builder.js` |
 | Colours and fonts | `prototypes/shared/tokens.css` |
 | The phone screens, "My signals" and "Grown-ups" | `prototypes/demo-scripted/` |
 | Gaze setup, hold time and tracking | `prototypes/demo-gaze/app.js` |

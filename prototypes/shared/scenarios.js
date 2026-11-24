@@ -52,5 +52,40 @@ window.TB_SCENARIOS = [
           sets: [[['I want to lie down', 54], ['I want a cuddle', 29], ['Turn the lights down', 12]]] },
         'I want to go home': { signals: [['look', 'Looks at the door']],
           sets: [[['Can we leave soon?', 51], ['I miss my dog', 27], ['It is too loud here', 16]]] }
+      } } },
+  { name: 'Playing with a friend', blurb: 'Choosing a game and taking a turn.',
+    first: { signals: [['look', 'Looks at the toy shelf'], ['move', 'Arm reaches out'], ['sound', 'Excited sound']],
+      context: 'Heard nearby: "What do you want to play?"',
+      sets: [[["Let's play a board game", 54], ["Let's build with blocks", 29], ["Let's watch a show", 12]]], want: "Let's play a board game",
+      follow: {
+        "Let's play a board game": { signals: [['look', 'Looks at her friend'], ['move', 'Big smile', 'smile']],
+          sets: [[['You go first', 47], ['My turn!', 36], ['I want the red piece', 13]]], want: 'You go first' },
+        "Let's build with blocks": { signals: [['move', 'Hand lifts high']],
+          sets: [[['Make it really tall', 58], ["Let's build a castle", 27], ['Knock it down!', 12]]] },
+        "Let's watch a show": { signals: [['look', 'Looks at the tablet']],
+          sets: [[['The one with the dogs', 51], ['Something funny', 30], ['You pick', 15]]] }
+      } } },
+  { name: 'Something is uncomfortable', blurb: 'Maya explains a problem so an adult can help.',
+    first: { signals: [['move', 'Shifts in her chair'], ['sound', 'Low sound'], ['look', 'Looks down']],
+      sets: [[["I'm uncomfortable", 57], ["I'm cold", 22], ["I'm bored", 14]]], want: "I'm uncomfortable",
+      follow: {
+        "I'm uncomfortable": { signals: [['move', 'Leans to one side'], ['look', 'Looks at her chair']],
+          sets: [[['Please move me in my chair', 61], ['My strap is too tight', 24], ['I need the toilet', 11]]], want: 'Please move me in my chair' },
+        "I'm cold": { signals: [['move', 'Arms pull in']],
+          sets: [[['I want my blanket', 63], ['Close the window, please', 22], ['I want my sweater', 12]]] },
+        "I'm bored": { signals: [['look', 'Looks around the room']],
+          sets: [[['Can we do something else?', 49], ['I want some music', 33], ['Read me a story', 14]]] }
+      } } },
+  { name: 'How was your day?', blurb: 'An open question with a longer answer.',
+    first: { signals: [['move', 'Big smile', 'smile'], ['sound', 'Sound: "g"']],
+      context: 'Heard nearby: "How was school today?"',
+      sets: [[['It was good', 52], ['It was hard', 27], ['It was funny', 16]]], want: 'It was good',
+      follow: {
+        'It was good': { signals: [['look', 'Looks at her painting'], ['move', 'Right hand lifts']],
+          sets: [[['I painted a picture', 46], ['I played with Sam', 35], ['We had music class', 14]]], want: 'I painted a picture' },
+        'It was hard': { signals: [['look', 'Looks down'], ['sound', 'Sigh']],
+          sets: [[['I was tired', 44], ['It was too noisy', 34], ['Nobody understood me', 17]]] },
+        'It was funny': { signals: [['move', 'Big smile', 'smile'], ['sound', 'Laughing sound']],
+          sets: [[['My teacher wore a silly hat', 48], ['Sam told a joke', 31], ['A bird flew into class', 16]]] }
       } } }
 ];
