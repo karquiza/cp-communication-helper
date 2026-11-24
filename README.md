@@ -59,7 +59,7 @@ The repository must be public for Pages on a free GitHub account.
 | To change | Edit |
 | --- | --- |
 | The conversations and suggestions | `prototypes/shared/scenarios.js` (the format is explained at the top of the file) |
-| The words offered in "Build my own sentence" | `prototypes/shared/builder.js` |
+| The words offered in "Build my own sentence" | `prototypes/shared/builder.js` (names are added on the gaze demo's start screen) |
 | Colours and fonts | `prototypes/shared/tokens.css` |
 | The phone screens, "My signals" and "Grown-ups" | `prototypes/demo-scripted/` |
 | Gaze setup, hold time and tracking | `prototypes/demo-gaze/app.js` |

@@ -35,6 +35,30 @@
     <p class="soft" style="font-size:14px">Longer is safer for a child with involuntary movement. Shorter is faster.</p>
   </div>
 
+  <div class="card">
+    <h2>Names</h2>
+    <p class="soft" style="font-size:14px">Add family, friends and pets. They appear in "Build my own sentence" after phrases like "Where is", "Hi" and "to play with". Saved on this device only.</p>
+    <form id="nameForm" style="display:flex;gap:8px">
+      <input class="field" id="nameInput" type="text" maxlength="20" autocomplete="off" placeholder="Add a name" aria-label="Name to add">
+      <button class="ghost" type="submit">Add</button>
+    </form>
+    <ul class="names" id="nameList"></ul>
+  </div>
+
+  <div class="card">
+    <h2>Extra signals</h2>
+    <label style="display:flex;gap:12px;align-items:flex-start">
+      <input type="checkbox" id="mic" style="width:22px;height:22px;flex:0 0 auto;accent-color:var(--primary)">
+      <span>Use the microphone. Look at an answer and make any sound to choose it straight away. Holding your gaze still works.</span>
+    </label>
+    <p class="soft" style="font-size:14px">The app listens for loudness only. It does not record anything or recognise words.</p>
+    <label style="display:flex;gap:12px;align-items:flex-start">
+      <input type="checkbox" id="shake" checked style="width:22px;height:22px;flex:0 0 auto;accent-color:var(--primary)">
+      <span>Head shake means no. It rejects the suggestions, takes back a message that was just spoken, or removes the last word of a sentence.</span>
+    </label>
+    <p class="soft" style="font-size:14px">Turn this off for a child with frequent involuntary head movement.</p>
+  </div>
+
   <button class="big" id="startCam">Start with camera</button>
   <button class="ghost" id="recal" hidden>Recalibrate, then start</button>
   <button class="ghost" id="startTap">Start without camera (tap to choose)</button>
@@ -64,8 +88,10 @@
     <div class="center">
       <div class="camrow" id="camrow" hidden>
         <video id="video" playsinline muted autoplay title="Tap to enlarge"></video>
-        <div><p id="status" aria-live="polite">Starting camera</p><p id="caminfo" style="font-size:12px;color:var(--ink-soft);text-align:left"></p></div>
-        <button class="ghost" id="swap" hidden style="padding:6px 12px;font-size:13px">Switch camera</button>
+        <div><p id="status" aria-live="polite">Starting camera</p><p id="caminfo" style="font-size:12px;color:var(--ink-soft);text-align:left"></p>
+          <div id="meterRow" hidden style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-soft)">Sound<span style="display:inline-block;width:80px;height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden"><i id="meter" style="display:block;height:100%;width:0;background:var(--primary)"></i></span></div></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><button class="ghost" id="recentre" style="padding:6px 12px;font-size:13px">Re-centre</button>
+        <button class="ghost" id="swap" hidden style="padding:6px 12px;font-size:13px">Switch camera</button></div>
       </div>
       <div id="mid" aria-live="polite"></div>
       <ul class="said" id="said"></ul>
