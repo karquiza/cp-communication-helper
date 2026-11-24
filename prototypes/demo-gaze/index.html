@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TalkBridge Gaze Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../shared/tokens.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Intro and settings -->
+<main id="intro">
+  <div>
+    <p class="eyebrow">Prototype with real gaze selection</p>
+    <h1>TalkBridge gaze demo</h1>
+  </div>
+  <p class="soft">The app suggests what a child means and the child chooses by looking at an answer and holding. The suggestions in this demo are scripted. The gaze selection uses your camera for real.</p>
+  <p class="msg" id="introMsg" hidden></p>
+
+  <div class="card">
+    <h2>Scenario</h2>
+    <div class="scn" id="scn"></div>
+  </div>
+
+  <div class="card">
+    <h2>Hold time to choose</h2>
+    <div class="rangeRow">
+      <input type="range" id="dwell" min="0.8" max="3" step="0.1" value="1.5" aria-label="Hold time in seconds">
+      <output id="dwellOut" for="dwell">1.5 s</output>
+    </div>
+    <p class="soft" style="font-size:14px">Longer is safer for a child with involuntary movement. Shorter is faster.</p>
+  </div>
+
+  <button class="big" id="startCam">Start with camera</button>
+  <button class="ghost" id="recal" hidden>Recalibrate, then start</button>
+  <button class="ghost" id="startTap">Start without camera (tap to choose)</button>
+
+  <div class="card">
+    <h2>For the tracking to work</h2>
+    <ul class="tips">
+      <li>Prop the device on a stand so it does not move.</li>
+      <li>Sit 30 to 50 cm away with light on your face, not behind you.</li>
+      <li>A tablet, a laptop or a phone held sideways works better than an upright phone, because the answers sit further apart.</li>
+      <li>Looking with your eyes or turning your head both work, as long as you do the same thing during setup.</li>
+    </ul>
+    <p class="soft" style="font-size:14px">Video is processed on this device and is not uploaded or saved. The face-tracking model is downloaded from Google when you start.</p>
+  </div>
+</main>
+
+<!-- Talk screen -->
+<div id="app" hidden>
+  <div class="top">
+    <b>TalkBridge</b>
+    <span class="demo">Demo: scripted suggestions</span>
+    <button id="menu">Menu</button>
+  </div>
+  <div class="grid">
+    <button class="tgt off" data-i="0"><i class="fill"></i><span class="t"></span><span class="pct"></span></button>
+    <button class="tgt off" data-i="1"><i class="fill"></i><span class="t"></span><span class="pct"></span></button>
+    <div class="center">
+      <div class="camrow" id="camrow" hidden>
+        <video id="video" playsinline muted></video>
+        <p id="status" aria-live="polite">Starting camera</p>
+      </div>
+      <div id="mid" aria-live="polite"></div>
+      <ul class="said" id="said"></ul>
+    </div>
+    <button class="tgt off" data-i="2"><i class="fill"></i><span class="t"></span><span class="pct"></span></button>
+    <button class="tgt off none" data-i="3"><i class="fill"></i><span class="t"></span><span class="pct"></span></button>
+  </div>
+</div>
+
+<script src="../shared/scenarios.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

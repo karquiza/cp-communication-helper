@@ -1,0 +1,38 @@
+/* Design tokens shared by every demo: colours, fonts, shadows. Light theme first, then dark. */
+:root {
+  --page: #e6efee;
+  --page-2: #f7ecd2;
+  --surface: #ffffff;
+  --surface-2: #f1f6f5;
+  --ink: #12282b;
+  --ink-soft: #55696c;
+  --line: #d6e1df;
+  --primary: #0d6e6e;
+  --primary-ink: #ffffff;
+  --primary-soft: #dbf0ed;
+  --sun: #f4b63a;
+  --sun-soft: #fdf1d2;
+  --sun-ink: #5a4200;
+  --good: #2c8a57;
+  --bad: #c2523a;
+  --bezel: #12282b;
+  --shadow: 0 1px 2px rgba(18,40,43,.06), 0 6px 18px rgba(18,40,43,.08);
+  --font-display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Verdana", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0b1618; --page-2: #1c1a10; --surface: #142427; --surface-2: #1b3033; --ink: #e8f1f0;
+    --ink-soft: #9fb6b7; --line: #2a4346; --primary: #45bdb3; --primary-ink: #06201f; --primary-soft: #18393a;
+    --sun: #f4b63a; --sun-soft: #3d3110; --sun-ink: #f8dd98; --good: #58c389; --bad: #ee866f;
+    --bezel: #020607; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0b1618; --page-2: #1c1a10; --surface: #142427; --surface-2: #1b3033; --ink: #e8f1f0;
+  --ink-soft: #9fb6b7; --line: #2a4346; --primary: #45bdb3; --primary-ink: #06201f; --primary-soft: #18393a;
+  --sun: #f4b63a; --sun-soft: #3d3110; --sun-ink: #f8dd98; --good: #58c389; --bad: #ee866f;
+  --bezel: #020607; --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.35);
+}

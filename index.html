@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TalkBridge Prototypes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fredoka:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="prototypes/shared/tokens.css">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font-family: var(--font-body); line-height: 1.45; }
+main { max-width: 620px; margin: 0 auto; padding: 40px 18px; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: 36px; line-height: 1.1; margin: 0; }
+p { margin: 0; color: var(--ink-soft); }
+a.card { display: block; background: var(--surface); border-radius: 20px; padding: 18px; color: var(--ink); text-decoration: none; border: 2px solid transparent; box-shadow: var(--shadow); }
+a.card:hover, a.card:focus-visible { border-color: var(--primary); outline: none; }
+a.card b { display: block; font-family: var(--font-display); font-weight: 600; font-size: 20px; margin-bottom: 4px; }
+a.card span { color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<main>
+  <h1>TalkBridge prototypes</h1>
+  <p>A class-project prototype of a communication helper for children with cerebral palsy. "TalkBridge" is a working name. All suggestions are scripted; no AI model is running.</p>
+  <a class="card" href="prototypes/demo-scripted/"><b>Clickable prototype</b><span>Phone-sized walkthrough with presenter notes. Everything is simulated, so it works on any device.</span></a>
+  <a class="card" href="prototypes/demo-gaze/"><b>Gaze demo</b><span>Choose an answer by looking at it and holding. Uses your camera; video stays on your device.</span></a>
+</main>
+</body>
+</html>
